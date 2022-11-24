@@ -7,27 +7,26 @@ typedef struct ContactInfo {
 	char name[21];
 	char phone[16];
 	char birth[9];
-	ContactInfo* nxt;
-	ContactInfo* prv;
+	struct ContactInfo* nxt;
+	struct ContactInfo* prv;
 } Contact;
 
 void printMainMenu();
-void swapContact(Contact* head, int index1, int index2);
-void sortContact(Contact* head, Contact* tail,Contact*n, int numContact);
-void insertContact(Contact* head, Contact* tail, int* numContact);
+void sortContact(Contact** head, Contact* cur);
+void insertContact(Contact** head, int* numContact);
 void deleteContact(Contact* head, int* numContact);
 void printAll(Contact* head, int numContact);
 void findContactByBirth(Contact* head, int numContact);
 int main() {
-	Contact* head = NULL;
-	Contact* tail = NULL;
-	int numContact = 0;//요소인덱스
+	Contact* head=NULL;
+	int numContact = 0;//연락처 개수
 	int menu;
 	while (1) {
 		printMainMenu(); //메뉴 출력
 		scanf("%d", &menu); //메뉴선택
 		switch (menu) {
-		case 1: insertContact(head, tail, &numContact); //등록
+		case 1:
+			insertContact(&head, &numContact); //등록
 			break;
 		case 2: printAll(head, numContact); // 보기
 			break;
@@ -46,58 +45,60 @@ void printMainMenu() {
 	printf("Enter_the_menu_number:");
 }
 
-void insertContact(Contact* head, Contact* tail, int* numContact) {
+void insertContact(Contact** head, int* numContact) {
 	if (*numContact == 100) {
 		printf("OVERFLOW\n");
 		return;
 	}
-
-	Contact* n;
+	Contact* tmp = (Contact*)malloc(sizeof(Contact));
 	printf("Name:");
-	scanf("%s", n->name);//No blank
+	scanf("%s", tmp->name);//No blank
 	printf("Phone_number:");
-	scanf("%s", n->phone);
+	scanf("%s", tmp->phone);
 	printf("Birth:");
-	scanf("%s", n->birth);
-
+	scanf("%s", tmp->birth);
 	*numContact++;
-	sortContact(head, tail, n, *numContact);
+	sortContact(head, tmp);
 	// 방금 입력된 데이터를 적절한 위치로 이동
 	//printf("<<%d>>\n", _______________);
-	//return;
+	return;
 }
 
-void sortContact(Contact* head, Contact* tail, Contact* n, int numContact) {
-	if (head == NULL) {
-		head = n;
-		tail = n;
+void sortContact(Contact** head, Contact* cur) {
+	if (*head == NULL) {
+		cur->nxt = NULL;
+		*head = cur;
 		return;
 	}
-	Contact* t = head;
-	while (1)
-		if (t->nxt != NULL && strcmp(t->name, t->nxt->name) > 0)
-			t = t->nxt;
-	//if t==tail?
-	//?
-	printf("%s %s %s\n", t->prv->name, t->name, t->nxt->name);
-	t->nxt = n;
-	n->prv = tail;
-	tail = n;
-		// head의 데이터를 알파벳 순 정렬
-		// strcmp 사용
-		// swapContact 함수 사용
+	Contact* t = *head;
+	Contact* tt;
+	for (; t != NULL && strcmp(cur->name, t->name) > 0; t = t->nxt) {
+		tt = t;
+	}
+	//t의 전에 삽입
+	if (t == NULL) {
+		tt->nxt = cur;
+		cur->prv = tt;
+		cur->nxt = NULL;
+	}
+	else if(t==*head) {
+		cur->prv = NULL;
+		cur->nxt = t;
+		t->prv = cur;
+		t->nxt = NULL;
+		*head = cur;
+	}
+	else {
+		cur->prv = t->prv;
+		cur->nxt = t;
+		t->prv->nxt = cur;
+		t->prv = cur;
+	}
+	//for (Contact* q = *head; q != NULL; q = q->nxt)
+	//	printf("%s\n", q->name);
+	return;
 }
 
-void swapContact(Contact* head, int index1, int index2) {
-	//Swap Two-Element ---- 구조체 데이터는 배정문을 사용할 수 있음!
-	//데이터가 입력될 때 최초의 데이터는 정렬이 필요 없음
-		//두번째 데이터부터 정렬{
-		//두번째 입력한 데이터가 첫번째 데이터와 교환이 필요한 지 뒤에서 부터 비교함!
-		//교환이 필요하면 swapContact(head, i, i - 1) 호출
-		// 세번째 데이터가 입력될 때 2개의 데이터는 교환된 상태이고,
-		// 세번째 데이터와 두번째 데이터를 비교하고 교환이 필요하면 함수 호출
-
-}
 
 void deleteContact(Contact* head, int* numContact) {
 	//if (삭제할 데이터가 없으면) {
