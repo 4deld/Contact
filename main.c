@@ -7,18 +7,18 @@ typedef struct ContactInfo {
 	char name[21];
 	char phone[16];
 	char birth[9];
-	struct ContactInfo* nxt;
-	struct ContactInfo* prv;
+	struct ContactInfo* nxt; //다음 원소
+	struct ContactInfo* prv; //전 원소
 } Contact;
 
 void printMainMenu();
 void sortContact(Contact** head, Contact* cur);
 void insertContact(Contact** head, int* numContact);
-void deleteContact(Contact* head, int* numContact);
+void deleteContact(Contact** head, int* numContact);
 void printAll(Contact* head, int numContact);
 void findContactByBirth(Contact* head, int numContact);
 int main() {
-	Contact* head=NULL;
+	Contact* head = NULL;
 	int numContact = 0;//연락처 개수
 	int menu;
 	while (1) {
@@ -30,11 +30,13 @@ int main() {
 			break;
 		case 2: printAll(head, numContact); // 보기
 			break;
-		case 3: deleteContact(head, &numContact); //삭제
+		case 3: deleteContact(&head, &numContact); //삭제
 			break;
 		case 4: findContactByBirth(head, numContact); //생일자 검색
 			break;
 		case 5:
+			for (Contact* q = head; q != NULL; q = q->nxt)//해제
+				free(q);
 			return 0;
 		}
 	}
@@ -46,26 +48,25 @@ void printMainMenu() {
 }
 
 void insertContact(Contact** head, int* numContact) {
-	if (*numContact == 100) {
+	if (*numContact == MAXCONTACT) { //예외처리
 		printf("OVERFLOW\n");
 		return;
 	}
-	Contact* tmp = (Contact*)malloc(sizeof(Contact));
+	Contact* tmp = (Contact*)malloc(sizeof(Contact)); //할당
 	printf("Name:");
-	scanf("%s", tmp->name);//No blank
+	scanf("%s", tmp->name);
 	printf("Phone_number:");
 	scanf("%s", tmp->phone);
 	printf("Birth:");
 	scanf("%s", tmp->birth);
-	*numContact++;
-	sortContact(head, tmp);
-	// 방금 입력된 데이터를 적절한 위치로 이동
-	//printf("<<%d>>\n", _______________);
+	*numContact += 1;
+	sortContact(head, tmp); //함수 호출
+	printf("<<%d>>\n", *numContact);
 	return;
 }
 
 void sortContact(Contact** head, Contact* cur) {
-	if (*head == NULL) {
+	if (*head == NULL) { //원소가 없을 때
 		cur->nxt = NULL;
 		*head = cur;
 		return;
@@ -73,7 +74,7 @@ void sortContact(Contact** head, Contact* cur) {
 	Contact* t = *head;
 	Contact* tt;
 	for (; t != NULL && strcmp(cur->name, t->name) > 0; t = t->nxt) {
-		tt = t;
+		tt = t; //전 원소
 	}
 	//t의 전에 삽입
 	if (t == NULL) {
@@ -81,11 +82,10 @@ void sortContact(Contact** head, Contact* cur) {
 		cur->prv = tt;
 		cur->nxt = NULL;
 	}
-	else if(t==*head) {
+	else if (t == *head) {
 		cur->prv = NULL;
 		cur->nxt = t;
 		t->prv = cur;
-		t->nxt = NULL;
 		*head = cur;
 	}
 	else {
@@ -94,21 +94,39 @@ void sortContact(Contact** head, Contact* cur) {
 		t->prv->nxt = cur;
 		t->prv = cur;
 	}
-	//for (Contact* q = *head; q != NULL; q = q->nxt)
-	//	printf("%s\n", q->name);
 	return;
 }
 
 
-void deleteContact(Contact* head, int* numContact) {
-	//if (삭제할 데이터가 없으면) {
-	//	printf(＂NO MEMBER\n＂); return;
-	//}
-	//printf(＂Name:＂);//이름입력 & 이름과 일치하는 데이터 삭제
-	// 반복문을 이용해서 해당 데이터가 있는 인덱스를 찾는다.
-	// 데이터가 정렬되어 있으므로, 삭제할 데이터의 인덱스+1의 데이터를
-	// 인덱스로 이동시킨다.
-	// 데이터의 개수를 감소시킴 (--)
+void deleteContact(Contact** head, int* numContact) {
+	if (*head == NULL) { //원소 없을 때
+		printf("NO MEMBER\n");
+		return;
+	}
+	*numContact -= 1;
+	char tmp[21];
+	printf("Name:");
+	scanf("%s", tmp);
+	Contact* q = *head;
+	for (; q != NULL; q = q->nxt) {
+		if (!strcmp(q->name, tmp)) {
+			if (q == *head) {
+				if (q->nxt != NULL) //예외처리
+					q->nxt->prv = NULL;
+				*head = q->nxt;
+			}
+			else if (q->nxt == NULL) {
+				q->prv->nxt = NULL;
+			}
+			else {
+				q->prv->nxt = q->nxt;
+				q->nxt->prv = q->prv;
+			}
+			break;
+		}
+	}
+	if (q != NULL)//해제
+		free(q);
 	return;
 }
 
@@ -116,10 +134,17 @@ void deleteContact(Contact* head, int* numContact) {
 void findContactByBirth(Contact* head, int numContact) {
 	int birth;
 	printf("Birth:");
-	scanf("%d", &birth);//월
-	// 반복문으로 birth와 head를 비교해서 일치하는 data를 출력함!
+	scanf("%d", &birth);
+	for (Contact* q = head; q != NULL; q = q->nxt) {
+		if (((q->birth[4] - '0') * 10 + q->birth[5] - '0') == birth) { //탐색
+			printf("%s %s %s\n", q->name, q->phone, q->birth);//출력
+		}
+	}
+	return;
 }
 
 void printAll(Contact* head, int numContact) {
+	for (Contact* q = head; q != NULL; q = q->nxt)//출력
+		printf("%s %s %s\n", q->name, q->phone, q->birth);
 	return;
 }
